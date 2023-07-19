@@ -11,7 +11,7 @@
 #include <unistd.h>
 #define PORT 8888
 
-char *showhex(uint8_t a[], int size) ;
+char *showhex(uint8_t a[], int size);
 
 char *showhex(uint8_t a[], int size) {
 
@@ -25,34 +25,23 @@ char *showhex(uint8_t a[], int size) {
 
 int main(void)
 {
+  uint8_t pka[CRYPTO_PUBLICKEYBYTES];
+
   uint8_t pkb[CRYPTO_PUBLICKEYBYTES];
   uint8_t skb[CRYPTO_SECRETKEYBYTES];
-
-  uint8_t pka[CRYPTO_PUBLICKEYBYTES];
-  uint8_t ska[CRYPTO_SECRETKEYBYTES];
-
-  uint8_t eska[CRYPTO_SECRETKEYBYTES];
-
-  uint8_t uake_senda[KEX_UAKE_SENDABYTES];
-  uint8_t uake_sendb[KEX_UAKE_SENDBBYTES];
 
   uint8_t ake_senda[KEX_AKE_SENDABYTES];
   uint8_t ake_sendb[KEX_AKE_SENDBBYTES];
 
-  uint8_t tk[KEX_SSBYTES];
-  uint8_t ka[KEX_SSBYTES];
   uint8_t kb[KEX_SSBYTES];
   uint8_t zero[KEX_SSBYTES];
-
   int i;
 
   int server_fd, new_socket, valread;
   struct sockaddr_in address;
   int opt = 1;
   int addrlen = sizeof(address);
-  char buffer_ake_senda[3137] = { 0 };
-  char buffer_kpa[2048] = { 0 };
-
+  
   for(i=0;i<KEX_SSBYTES;i++)
     zero[i] = 0;
   
@@ -78,7 +67,7 @@ int main(void)
         exit(EXIT_FAILURE);
   }
   if (listen(server_fd, 3) < 0) {
-        ("listen");
+        printf("listen");
         exit(EXIT_FAILURE);
   }
   if ((new_socket = accept(server_fd, (struct sockaddr*)&address, (socklen_t*)&addrlen))< 0) {
@@ -86,7 +75,8 @@ int main(void)
         exit(EXIT_FAILURE);
   }
 
-  valread = read(new_socket, buffer_kpa, 2048);
+  // Receiving Alice public key first
+  valread = read(new_socket, pka, CRYPTO_PUBLICKEYBYTES);
   printf("\n[] Received Alice Public Key----\n");
 
   crypto_kem_keypair(pkb, skb); // Generate static key for Bob
@@ -95,10 +85,10 @@ int main(void)
   printf("Sending Bob Public key...\n");
 
   // Bob will receive AKE
-  valread = read(new_socket, buffer_ake_senda, 3137);
+  valread = read(new_socket, ake_senda, KEX_AKE_SENDABYTES);
   printf("[] AKE of Alice received...\n");
 
-  kex_ake_sharedB(ake_sendb, kb, buffer_ake_senda, skb, buffer_kpa); // Run by Bob
+  kex_ake_sharedB(ake_sendb, kb, ake_senda, skb, pka); // Run by Bob
 
   // Bob will send AKE
   send(new_socket, ake_sendb, sizeof(ake_sendb), 0);
@@ -108,12 +98,12 @@ int main(void)
   printf("KEX_AKE_SENDBBYTES: %d\n",KEX_AKE_SENDBBYTES);
 
   // Printing the AKE shared between Alice and Bob
-  printf("Alice AKE key (only showing 1/8 of key): %s\n",showhex(buffer_ake_senda,KEX_AKE_SENDABYTES/8));
+  printf("Alice AKE key (only showing 1/8 of key): %s\n",showhex(ake_senda,KEX_AKE_SENDABYTES/8));
   printf("Bob AKE key (only showing 1/8 of key): %s\n",showhex(ake_sendb,KEX_AKE_SENDBBYTES/8));
 
 
   // Printing Public Key shared between Alice and Bob
-  printf("Alice Public key (only showing 1/8 of key): %s\n",showhex(buffer_kpa,CRYPTO_PUBLICKEYBYTES/8));
+  printf("Alice Public key (only showing 1/8 of key): %s\n",showhex(pka,CRYPTO_PUBLICKEYBYTES/8));
   printf("Bob Public key (only showing 1/8 of key): %s\n",showhex(pkb,CRYPTO_PUBLICKEYBYTES/8));
 
   // printf("Key (A): %s\n",showhex(ka,CRYPTO_BYTES));  

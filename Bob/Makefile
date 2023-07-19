@@ -14,11 +14,7 @@ HEADERSNINETIES = $(HEADERS) aes256ctr.h sha2.h
 .PHONY: all speed shared clean
 
 all: \
-  test_kyber512  \
-  test_kyber768 \
   test_kyber1024 \
-  test_kex512 \
-  test_kex768 \
   test_kex1024 \
 
 
