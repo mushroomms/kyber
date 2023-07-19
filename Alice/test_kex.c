@@ -80,22 +80,23 @@ int main(void)
   crypto_kem_keypair(pka, ska); // Generate static key for Alice
   
   // Sending Alice Public Key
-  printf("\nSending Alice Public key...\n");
+  printf("\n[*] Sending Alice Public key...\n");
   send(client_fd, pka, sizeof(pka), 0);
 
   // Receiving Bob Public Key
   valread = read(client_fd, buffer_pkb, 2048);
-  printf("[] Received Bob Public key\n");
+  printf("\n[+] Received Bob Public key\n");
 
   kex_ake_initA(ake_senda, tk, eska, buffer_pkb); // Run by Alice
   
   // Sending Alice AKE
-  printf("----AKE of Alice sent----\n");
+  printf("\n[*] Sending Alice AKE...\n");
   send(client_fd, ake_senda, sizeof(ake_senda), 0);
 
   // Receiving Bob AKE
   valread = read(client_fd, buffer_ake_sendb, 3137);
-  printf("[] AKE of Bob Received\n");
+  printf("\n[*] AKE of Bob Received\n");
+  
   kex_ake_sharedA(ka, buffer_ake_sendb, tk, eska, ska); // Run by Alice
 
   printf("\nKEX_AKE_SENDABYTES: %d\n",KEX_AKE_SENDABYTES);
