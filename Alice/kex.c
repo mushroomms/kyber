@@ -3,6 +3,8 @@
 #include "kem.h"
 #include "symmetric.h"
 
+
+
 void kex_uake_initA(uint8_t *send, uint8_t *tk, uint8_t *sk, const uint8_t *pkb)
 {
   crypto_kem_keypair(send, sk);
