@@ -77,37 +77,37 @@ int main(void)
 
   // Receiving Alice public key first
   valread = read(new_socket, pka, CRYPTO_PUBLICKEYBYTES);
-  printf("\n[] Received Alice Public Key----\n");
+  printf("\n[+] Received Alice Public Key\n");
 
   crypto_kem_keypair(pkb, skb); // Generate static key for Bob
 
+  printf("\n[*] Sending Bob Public key...\n");
   send(new_socket, pkb, sizeof(pkb), 0); // Sending Bob public key
-  printf("Sending Bob Public key...\n");
 
   // Bob will receive AKE
   valread = read(new_socket, ake_senda, KEX_AKE_SENDABYTES);
-  printf("[] AKE of Alice received...\n");
+  printf("\n[+] AKE of Alice received...\n");
 
   kex_ake_sharedB(ake_sendb, kb, ake_senda, skb, pka); // Run by Bob
 
   // Bob will send AKE
+  printf("\n[*] Sending AKE of Bob\n");
   send(new_socket, ake_sendb, sizeof(ake_sendb), 0);
-  printf("Sending AKE of Bob\n");
 
   printf("\nKEX_AKE_SENDABYTES: %d\n",KEX_AKE_SENDABYTES);
   printf("KEX_AKE_SENDBBYTES: %d\n",KEX_AKE_SENDBBYTES);
 
   // Printing the AKE shared between Alice and Bob
-  printf("Alice AKE key (only showing 1/8 of key): %s\n",showhex(ake_senda,KEX_AKE_SENDABYTES/8));
+  printf("\nAlice AKE key (only showing 1/8 of key): %s\n",showhex(ake_senda,KEX_AKE_SENDABYTES/8));
   printf("Bob AKE key (only showing 1/8 of key): %s\n",showhex(ake_sendb,KEX_AKE_SENDBBYTES/8));
 
 
   // Printing Public Key shared between Alice and Bob
-  printf("Alice Public key (only showing 1/8 of key): %s\n",showhex(pka,CRYPTO_PUBLICKEYBYTES/8));
+  printf("\nAlice Public key (only showing 1/8 of key): %s\n",showhex(pka,CRYPTO_PUBLICKEYBYTES/8));
   printf("Bob Public key (only showing 1/8 of key): %s\n",showhex(pkb,CRYPTO_PUBLICKEYBYTES/8));
 
   // printf("Key (A): %s\n",showhex(ka,CRYPTO_BYTES));  
-  printf("Key (B): %s\n",showhex(kb,CRYPTO_BYTES));
+  printf("\nKey (B): %s\n",showhex(kb,CRYPTO_BYTES));
 
   return 0;
 }
