@@ -20,7 +20,7 @@ Kyber comes in three security levels. The size vs. security tradeoffs are shown 
 - Both ALICE & BOB is required to share their public key
 - The public keys allow ALICE & BOB to decapsulate correctly
 - This ensures that ALICE & BOB are authenticated
-
+```
              ALICE                 |               BOB
     --------------------------------------------------------------
                          Generate KEM Keypair()
@@ -38,7 +38,6 @@ Kyber comes in three security levels. The size vs. security tradeoffs are shown 
          kex_ake_sharedA()   <---socket----      ake_sendB
                 |                                    |
                 |                                    |
-               ka                                    kb
+                ka                                   kb
                
-      
-    
+    ```
