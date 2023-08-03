@@ -40,4 +40,3 @@ Kyber comes in three security levels. The size vs. security tradeoffs are shown 
                 |                                    |
                 ka                                   kb
                
-    ```
