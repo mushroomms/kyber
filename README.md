@@ -15,3 +15,30 @@ Kyber comes in three security levels. The size vs. security tradeoffs are shown 
 
 * `test_kyber$ALG` tests 1000 times to generate keys, encapsulate a random key and correctly decapsulate it again. Also, the program tests that the keys cannot correctly be decapsulated using a random secret key or a ciphertext where a single random byte was randomly distorted in order to test for trivial failures of the CCA security. The program will abort with an error message and return 1 if there was an error. Otherwise it will output the key and ciphertext sizes and return 0.
 * `test_kex$ALG` tests the authenticated key exchange schemes derived from the Kyber KEM
+
+## Key Encapsulation Method (KEM) using Mutually Authenticated Key EXchange (KEX)
+- Both ALICE & BOB is required to share their public key
+- The public keys allow ALICE & BOB to decapsulate correctly
+- This ensures that ALICE & BOB are authenticated
+
+             ALICE                 |               BOB
+    --------------------------------------------------------------
+                         Generate KEM Keypair()
+
+
+            Alice PK         ----socket--->
+
+      
+         kex_ake_initA()     <---socket----        Bob PK
+                |
+                |
+            ake_sendA        ----socket--->   kex_ake_sharedB()
+                                                     |
+                                                     |
+         kex_ake_sharedA()   <---socket----      ake_sendB
+                |                                    |
+                |                                    |
+               ka                                    kb
+               
+      
+    
