@@ -39,8 +39,7 @@ char *showhex(uint8_t a[], int size) {
     return(s);
 }
 
-int main(void)
-{
+int main(void) {
   uint8_t pkb[CRYPTO_PUBLICKEYBYTES];
 
   uint8_t pka[CRYPTO_PUBLICKEYBYTES];
@@ -88,49 +87,60 @@ int main(void)
   for(i=0;i<KEX_SSBYTES;i++)
     zero[i] = 0;
 
+  // Start timer
   clock_gettime(CLOCK_REALTIME, &begin_kyber_wall);
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &begin_kyber_cpu);
 
+  // Taking CPU cycles to generate static keys
   cpucycles_reset();
   cpucycles_start();
   crypto_kem_keypair(pka, ska); // Generate static key for Alice
   cpucycles_stop();
   unsigned int crypto_kem_keypair_cycles = cpucycles_result();
 
+  // Sending Alice Public Key
   printf("\n[*] Sending Alice Public key...\n");
   clock_gettime(CLOCK_REALTIME, &begin_sending_PKA);
-  send(client_fd, pka, sizeof(pka), 0); // Sending Alice Public Key
-
-  valread = read(client_fd, pkb, CRYPTO_PUBLICKEYBYTES); // Receiving Bob Public Key
+  send(client_fd, pka, sizeof(pka), 0);
+  
+  // Receiving Bob Public Key
+  valread = read(client_fd, pkb, CRYPTO_PUBLICKEYBYTES);
   clock_gettime(CLOCK_REALTIME, &end_receiving_PKB);
   printf("[+] Received Bob Public key\n");
 
+  // Calculating RTT for sending and receiving Public Keys
   double RTT_PK = (end_receiving_PKB.tv_sec - begin_sending_PKA.tv_sec) + (end_receiving_PKB.tv_nsec - begin_sending_PKA.tv_nsec) / 1000000000.0 * 1000.0;
-  printf("\nRound Trip Time for Public Key: %f milliseconds\n", RTT_PK);
+  printf("\nRound Trip Time for Public Key (WALL TIME): %f milliseconds\n", RTT_PK);
 
+  // Taking CPU cycles to generate ake_senda ciphertext
   cpucycles_reset();
   cpucycles_start();
   kex_ake_initA(ake_senda, tk, eska, pkb); // Run by Alice
   cpucycles_stop();
   unsigned int ake_init_cycles = cpucycles_result();
 
+  // Sending Alice AKE
   printf("\n[*] Sending Alice AKE...\n");
   clock_gettime(CLOCK_REALTIME, &begin_sending_AKE);
-  send(client_fd, ake_senda, sizeof(ake_senda), 0); // Sending Alice AKE
+  send(client_fd, ake_senda, sizeof(ake_senda), 0);
 
-  valread = read(client_fd, ake_sendb, KEX_AKE_SENDBBYTES); // Receiving Bob AKE
+  // Receiving Bob AKE
+  valread = read(client_fd, ake_sendb, KEX_AKE_SENDBBYTES);
   clock_gettime(CLOCK_REALTIME, &end_receiving_AKE);
   printf("[+] Received Bob AKE\n");
 
+  // Calculating RTT for sending and receiving AKEs
   double RTT_AKE = (end_receiving_AKE.tv_sec - begin_sending_AKE.tv_sec) + (end_receiving_AKE.tv_nsec - begin_sending_AKE.tv_nsec) / 1000000000.0 * 1000.0;
-  printf("\nRound Trip Time for AKE: %f milliseconds\n", RTT_AKE);
+  printf("\nRound Trip Time for AKE (WALL TIME): %f milliseconds\n", RTT_AKE);
   
+  // Taking CPU cycles to generate shared key
   cpucycles_reset();
   cpucycles_start();
   kex_ake_sharedA(ka, ake_sendb, tk, eska, ska); // Run by Alice
   cpucycles_stop();
   unsigned int sharedA_cycles = cpucycles_result();
 
+  // End timer
   clock_gettime(CLOCK_REALTIME, &end_kyber_wall);
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end_kyber_cpu);
 
@@ -151,9 +161,16 @@ int main(void)
   // Printing the derived secret key by Alice
   printf("\nKey (A): %s\n",showhex(ka,CRYPTO_BYTES));
 
-  printf("\nTotal CPU Cycles: %d\n", crypto_kem_keypair_cycles + ake_init_cycles + sharedA_cycles);
-  printf("Total Wall time: %f milliseconds\n", kyber_wall);
+  printf("\nKEM Keypair:    %d CPU Cycles\n", crypto_kem_keypair_cycles);
+  printf("AKE Init:       %d CPU Cycles\n", ake_init_cycles);
+  printf("Derive Shared:  %d CPU Cycles\n", sharedA_cycles);
+  printf("Total:          %d CPU Cycles\n", crypto_kem_keypair_cycles + ake_init_cycles + sharedA_cycles);
+
+  printf("\nTotal Wall time: %f milliseconds\n", kyber_wall);
   printf("Total CPU time: %f milliseconds\n", kyber_cpu);  
+
+  FILE *sharedsecret = fopen("sharedsecret.txt", "w");
+  fprintf(sharedsecret, "%s", showhex(ka, CRYPTO_BYTES));  
 
   return 0;
 }
