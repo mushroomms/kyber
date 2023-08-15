@@ -14,10 +14,10 @@ HEADERSNINETIES = $(HEADERS) lib/aes256ctr.h lib/sha2.h
 .PHONY: all speed shared clean
 
 all: \
-  test_kex1024 \
+  kyber_client1024 \
 
-test_kex1024: $(SOURCESKECCAK) $(HEADERSKECCAK) test_kex.c lib/randombytes.c
-	$(CC) $(CFLAGS) -DKYBER_K=4 $(SOURCESKECCAK) lib/randombytes.c test_kex.c -o test_kex1024
+kyber_client1024: $(SOURCESKECCAK) $(HEADERSKECCAK) kyber_client.c lib/randombytes.c
+	$(CC) $(CFLAGS) -DKYBER_K=4 $(SOURCESKECCAK) lib/randombytes.c kyber_client.c -o kyber_client1024
   
 clean:
-	-$(RM) -rf test_kex1024
+	-$(RM) -rf kyber_client1024
