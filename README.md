@@ -39,4 +39,18 @@ Kyber comes in three security levels. The size vs. security tradeoffs are shown 
                 |                                    |
                 |                                    |
                 ka                                   kb
-               
+```            
+## To run
+Run the following make files in Alice & Bob folders to run
+Alice:
+```
+./test_kex1024 <Bob IP Address> <Bob Port>
+```
+Bob:
+```
+./test_kex1024 <Listening Port> <Alice Machine Name>
+```
+
+
+
+
