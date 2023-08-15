@@ -8,11 +8,11 @@
 #include "lib/kem.h"
 #include "lib/kex.h"
 
-#include <netinet/in.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 #include <unistd.h>
 
-#define PORT 8888
+#define SERVER_IP "192.168.10.1"
 
 #define cpucycles(cycles) cycles = __rdtsc()
 #define cpucycles_reset() cpucycles_sum = 0
@@ -28,6 +28,8 @@
 
 unsigned long long cpucycles_before, cpucycles_after, cpucycles_sum;
 
+char *showhex(uint8_t a[], int size);
+
 char *showhex(uint8_t a[], int size) {
 
       char *s = malloc(size * 2 + 1);
@@ -38,8 +40,8 @@ char *showhex(uint8_t a[], int size) {
       return (s);
 }
 
-int main(void) {
-      struct timespec begin_kyber_cpu, end_kyber_cpu, begin_kyber_wall, end_kyber_wall;
+int main(int argc, char* argv[]) {
+      struct timespec begin_kyber_cpu, end_kyber_cpu;
       struct timespec public_key_begin, public_key_end;
       struct timespec ake_begin, ake_end;
 
@@ -52,42 +54,45 @@ int main(void) {
       uint8_t ake_sendb[KEX_AKE_SENDBBYTES];
 
       uint8_t kb[KEX_SSBYTES];
-      uint8_t zero[KEX_SSBYTES];
-      int i;
 
       int server_fd, new_socket, valread;
       struct sockaddr_in address;
       int opt = 1;
       int addrlen = sizeof(address);
 
-      for (i = 0; i < KEX_SSBYTES; i++)
-            zero[i] = 0;
-
       // Creating socket file descriptor
-      if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-      {
+      if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
             perror("socket failed");
             exit(EXIT_FAILURE);
       }
 
-      // Forcefully attaching socket to the port 8080
-      if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)))
-      {
+      // Forcefully attaching socket
+      if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) {
             perror("setsockopt");
             exit(EXIT_FAILURE);
       }
 
+      int PORT = atoi(argv[1]);
+      char *SERVER_NAME = argv[2];
+
       address.sin_family = AF_INET;
-      address.sin_addr.s_addr = INADDR_ANY;
       address.sin_port = htons(PORT);
 
-      printf("\n[*] Waiting for Alice Public Key...\n");
+      printf("[SOCK] Starting up on %s port %i\n", SERVER_IP, PORT);
+      printf("[SOCK] Listening for %s machine\n", SERVER_NAME);
 
-      // Forcefully attaching socket to the port 8080
+      // Forcefully attaching socket to the port 8080 to SERVER_IP
+      if (inet_pton(AF_INET, SERVER_IP, &address.sin_addr) <= 0) {
+          printf("\nInvalid address/ Address not supported \n");
+          return -1;
+      }
       if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
             perror("bind failed");
             exit(EXIT_FAILURE);
       }
+      
+      printf("\n[*] Waiting for Alice Public Key...\n");
+
       if (listen(server_fd, 3) < 0) {
             exit(EXIT_FAILURE);
       }
@@ -98,6 +103,10 @@ int main(void) {
 
       // Receiving Alice public key first
       valread = read(new_socket, pka, CRYPTO_PUBLICKEYBYTES);
+      if (valread == -1) {
+            perror("read error");
+            exit(EXIT_FAILURE);
+      }
       printf("\n[+] Received Alice Public Key\n");
       clock_gettime(CLOCK_REALTIME, &public_key_begin);
       clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &begin_kyber_cpu);
@@ -120,6 +129,10 @@ int main(void) {
 
       // Bob will receive AKE
       valread = read(new_socket, ake_senda, KEX_AKE_SENDABYTES);
+      if (valread == -1) {
+            perror("read error");
+            exit(EXIT_FAILURE);
+      }
       printf("\n[+] Received Alice AKE\n");
       clock_gettime(CLOCK_REALTIME, &ake_begin);
 
@@ -148,12 +161,12 @@ int main(void) {
       printf("KEX_AKE_SENDBBYTES: %d\n", KEX_AKE_SENDBBYTES);
 
       // Printing the AKE shared between Alice and Bob
-      printf("\nAlice AKE key (only showing 1/8 of key): %s\n", showhex(ake_senda, KEX_AKE_SENDABYTES / 8));
-      printf("Bob AKE key (only showing 1/8 of key): %s\n", showhex(ake_sendb, KEX_AKE_SENDBBYTES / 8));
+      printf("\nAlice AKE key (only showing 1/32 of key): %s\n", showhex(ake_senda, KEX_AKE_SENDABYTES / 32));
+      printf("Bob AKE key (only showing 1/32 of key): %s\n", showhex(ake_sendb, KEX_AKE_SENDBBYTES / 32));
 
       // Printing Public Key shared between Alice and Bob   
-      printf("\nAlice Public key (only showing 1/8 of key): %s\n", showhex(pka, CRYPTO_PUBLICKEYBYTES / 8));
-      printf("Bob Public key (only showing 1/8 of key): %s\n", showhex(pkb, CRYPTO_PUBLICKEYBYTES / 8));
+      printf("\nAlice Public key (only showing 1/32 of key): %s\n", showhex(pka, CRYPTO_PUBLICKEYBYTES / 32));
+      printf("Bob Public key (only showing 1/32 of key): %s\n", showhex(pkb, CRYPTO_PUBLICKEYBYTES / 32));
 
       // printf("Key (A): %s\n",showhex(ka,CRYPTO_BYTES));
       printf("\nKey (B): %s\n", showhex(kb, CRYPTO_BYTES));
@@ -165,8 +178,13 @@ int main(void) {
       printf("\nTotal Wall time: %f milliseconds\n", kyber_wall);
       printf("Total CPU time: %f milliseconds\n", kyber_cpu);
 
-      FILE *sharedsecret = fopen("sharedsecret.txt", "w");
-      fprintf(sharedsecret, "%s", showhex(kb, CRYPTO_BYTES));  
+      // Create a buffer to hold the concatenated string
+      char filename[128];
 
+      strcpy(filename, SERVER_NAME); // Copy SERVER_NAME to filename
+      strcat(filename, "_pmk.key");  // Concatenate "_pmk.key" to filename
+
+      FILE *sharedsecret = fopen(filename, "wb");
+      fwrite(kb, 1, CRYPTO_BYTES, sharedsecret);
       return 0;
 }
