@@ -57,13 +57,17 @@ int main(int argc, char* argv[]) {
   struct timespec begin_sending_PKA, end_receiving_PKB, begin_sending_AKE, end_receiving_AKE;
   struct timespec begin_kyber_cpu, end_kyber_cpu, begin_kyber_wall, end_kyber_wall;
   
-  if ((client_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-    printf("\n Socket creation error \n");
-    return -1;
+  if (argc != 3) {
+    printf("Usage: %s <SERVER IP> <SERVER PORT>\n", argv[0]);
+    return 1;
   }
-
   char *SERVER_IP = argv[1];
   int PORT = atoi(argv[2]);
+
+  if ((client_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
+    printf("\n Socket creation error \n");
+    return 1;
+  }
 
   memset(&serv_addr, 0, sizeof(serv_addr));
 
@@ -75,11 +79,11 @@ int main(int argc, char* argv[]) {
   // Convert IPv4 and IPv6 addresses from text to binary form
   if (inet_pton(AF_INET, SERVER_IP, &serv_addr.sin_addr) <= 0) {
           printf("\nInvalid address/ Address not supported \n");
-          return -1;
+          return 1;
   }
   if ((status = connect(client_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr))) < 0) {
           printf("\nConnection Failed \n");
-          return -1;
+          return 1;
   }
 
   // Start timer

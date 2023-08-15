@@ -60,8 +60,15 @@ int main(int argc, char* argv[]) {
       int opt = 1;
       int addrlen = sizeof(address);
 
+      if (argc != 3) {
+            printf("Usage: %s <LISTENING PORT> <PEER NAME>\n", argv[0]);
+            return 1;
+      }
+      int PORT = atoi(argv[1]);
+      char *SERVER_NAME = argv[2];
+
       // Creating socket file descriptor
-      if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+      if ((server_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
             perror("socket failed");
             exit(EXIT_FAILURE);
       }
@@ -72,13 +79,10 @@ int main(int argc, char* argv[]) {
             exit(EXIT_FAILURE);
       }
 
-      int PORT = atoi(argv[1]);
-      char *SERVER_NAME = argv[2];
-
       address.sin_family = AF_INET;
       address.sin_port = htons(PORT);
 
-      printf("[SOCK] Starting up on %s port %i\n", SERVER_IP, PORT);
+      printf("[SOCK] Starting up on %s:%i\n", SERVER_IP, PORT);
       printf("[SOCK] Listening for %s machine\n", SERVER_NAME);
 
       // Forcefully attaching socket to the port 8080 to SERVER_IP
