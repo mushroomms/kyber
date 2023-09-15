@@ -17,9 +17,9 @@ Kyber comes in three security levels. The size vs. security tradeoffs are shown 
 * `test_kex$ALG` tests the authenticated key exchange schemes derived from the Kyber KEM
 
 ## Key Encapsulation Method (KEM) using Mutually Authenticated Key EXchange (KEX)
-- Both ALICE & BOB are required to share their respective public key
-- The public keys allow ALICE & BOB to decapsulate correctly using their respective private key
-- This ensures that ALICE & BOB are authenticated
+- Both ALICE & BOB are required to share their respective long term authentication public key
+- The public keys allow ALICE & BOB to decapsulate correctly using their respective authentication private key
+- This ensures that ALICE & BOB are mutually authenticated through implicit authentication
 
 ![image](https://github.com/mushroomms/kyber/assets/98047682/75f36154-d3c8-4592-8742-9e87774101c8)
 
