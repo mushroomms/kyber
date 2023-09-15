@@ -20,26 +20,9 @@ Kyber comes in three security levels. The size vs. security tradeoffs are shown 
 - Both ALICE & BOB are required to share their respective public key
 - The public keys allow ALICE & BOB to decapsulate correctly using their respective private key
 - This ensures that ALICE & BOB are authenticated
-```
-             ALICE                 |               BOB
-    --------------------------------------------------------------
-                         Generate KEM Keypair()
 
+![image](https://github.com/mushroomms/kyber/assets/98047682/75f36154-d3c8-4592-8742-9e87774101c8)
 
-            Alice PK         ----socket--->
-
-      
-         kex_ake_initA()     <---socket----        Bob PK
-                |
-                |
-            ake_sendA        ----socket--->   kex_ake_sharedB()
-                                                     |
-                                                     |
-         kex_ake_sharedA()   <---socket----      ake_sendB
-                |                                    |
-                |                                    |
-                ka                                   kb
-```            
 ## To run
 Run the following make files in Alice & Bob folders to run.
 <br><br>
