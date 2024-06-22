@@ -151,7 +151,8 @@ int main(int argc, char* argv[]) {
 
   printf("\nKEX_AKE_SENDABYTES: %d\n",KEX_AKE_SENDABYTES);
   printf("KEX_AKE_SENDBBYTES: %d\n",KEX_AKE_SENDBBYTES);
-
+  printf("Public key size: %d\nSecret key size: %d\nCiphertext  size: %d\n",CRYPTO_PUBLICKEYBYTES,CRYPTO_SECRETKEYBYTES,CRYPTO_CIPHERTEXTBYTES);
+  
   // Printing the AKE shared between Alice and Bob
   printf("\nAlice AKE key (only showing 1/32 of key): %s\n",showhex(ake_senda,KEX_AKE_SENDABYTES/32));
   printf("Bob AKE key (only showing 1/32 of key): %s\n",showhex(ake_sendb,KEX_AKE_SENDBBYTES/32));
